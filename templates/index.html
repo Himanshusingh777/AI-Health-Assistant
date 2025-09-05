@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SwasthaAI AI Agent</title>
+<style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3), transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3), transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2), transparent 50%),
+        linear-gradient(135deg, #0f172a 0%, #1e293b 30%, #334155 70%, #475569 100%);
+      height: 100vh;
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      color: #e2e8f0;
+    }
+
+    .container {
+      display: grid;
+      grid-template-areas: 
+        "header header"
+        "avatar chat"
+        "footer footer";
+      grid-template-rows: 100px 1fr 80px;
+      grid-template-columns: 450px 1fr;
+      height: 100vh;
+      gap: 25px;
+      padding: 25px;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      grid-area: header;
+      text-align: center;
+      background: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #06b6d4 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 3rem;
+      font-weight: 800;
+      text-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border-radius: 25px;
+      border: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    h1::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    .ai-section {
+      grid-area: avatar;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: 
+        linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+      backdrop-filter: blur(25px);
+      border-radius: 40px;
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 50px;
+      position: relative;
+      box-shadow: 
+        0 25px 50px rgba(0,0,0,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+
+    .ai-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    }
+
+    .ai-avatar {
+      width: 280px;
+      height: 280px;
+      background: 
+        radial-gradient(circle at 30% 30%, #6366f1 0%, #4338ca 50%, #1e1b4b 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 
+        0 0 60px rgba(99, 102, 241, 0.4),
+        inset 0 0 60px rgba(255,255,255,0.1),
+        0 0 0 3px rgba(255,255,255,0.1),
+        0 0 0 6px rgba(99, 102, 241, 0.2);
+      transition: all 0.4s ease;
+      overflow: hidden;
+    }
+
+    .ai-avatar::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: conic-gradient(from 0deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+      animation: rotate 4s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .ai-face {
+      width: 200px;
+      height: 200px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+    }
+
+    .ai-eyes {
+      display: flex;
+      gap: 35px;
+      margin-bottom: 25px;
+    }
+
+    .eye {
+      width: 55px;
+      height: 55px;
+      background: 
+        linear-gradient(145deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
+      border-radius: 50%;
+      position: relative;
+      box-shadow: 
+        inset 0 3px 15px rgba(0,0,0,0.1),
+        0 2px 10px rgba(0,0,0,0.1);
+      border: 2px solid rgba(203, 213, 225, 0.8);
+      transition: all 0.3s ease;
+    }
+
+    .pupil {
+      width: 35px;
+      height: 35px;
+      background: 
+        radial-gradient(circle at 30% 30%, #1e293b 0%, #0f172a 70%, #020617 100%);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: all 0.3s ease;
+      box-shadow: 
+        0 0 15px rgba(30, 41, 59, 0.8),
+        inset 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .iris {
+      width: 25px;
+      height: 25px;
+      background: 
+        linear-gradient(135deg, #475569 0%, #334155 50%, #0f172a 100%);
+      border-radius: 50%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+    }
+
+    .highlight {
+      width: 10px;
+      height: 10px;
+      background: 
+        radial-gradient(circle, #ffffff 0%, #f1f5f9 70%, #e2e8f0 100%);
+      border-radius: 50%;
+      position: absolute;
+      top: 20%;
+      left: 25%;
+      box-shadow: 0 0 5px rgba(255,255,255,0.8);
+      animation: twinkle 2s ease-in-out infinite;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(0.9); }
+    }
+
+    .ai-mouth {
+      width: 45px;
+      height: 25px;
+      border: 3px solid #64748b;
+      border-top: none;
+      border-radius: 0 0 45px 45px;
+      margin-top: 15px;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 -2px 5px rgba(100, 116, 139, 0.2);
+    }
+
+    /* Floating particles effect */
+    .ai-section::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      background: 
+        radial-gradient(2px 2px at 20% 30%, rgba(168, 85, 247, 0.3), transparent),
+        radial-gradient(2px 2px at 40% 70%, rgba(236, 72, 153, 0.3), transparent),
+        radial-gradient(1px 1px at 60% 15%, rgba(6, 182, 212, 0.3), transparent),
+        radial-gradient(1px 1px at 80% 50%, rgba(59, 130, 246, 0.3), transparent);
+      background-size: 100px 100px, 80px 80px, 60px 60px, 120px 120px;
+      animation: floatingParticles 20s ease-in-out infinite;
+      pointer-events: none;
+      border-radius: 40px;
+    }
+
+    @keyframes floatingParticles {
+      0%, 100% { 
+        background-position: 0% 0%, 0% 0%, 0% 0%, 0% 0%;
+        opacity: 0.3;
+      }
+      25% { 
+        background-position: 20% 10%, 30% 20%, 10% 30%, 40% 10%;
+        opacity: 0.6;
+      }
+      50% { 
+        background-position: 40% 20%, 60% 40%, 20% 60%, 80% 20%;
+        opacity: 0.4;
+      }
+      75% { 
+        background-position: 60% 30%, 90% 60%, 30% 90%, 120% 30%;
+        opacity: 0.7;
+      }
+    }
+
+    /* Enhanced glow effects */
+    .ai-avatar:hover {
+      box-shadow: 
+        0 0 80px rgba(99, 102, 241, 0.6),
+        inset 0 0 80px rgba(255,255,255,0.15),
+        0 0 0 3px rgba(255,255,255,0.2),
+        0 0 0 6px rgba(99, 102, 241, 0.3);
+      transform: scale(1.05);
+    }
+
+    /* Breathing animation for AI when idle */
+    .ai-avatar {
+      animation: breathe 4s ease-in-out infinite;
+    }
+
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+
+    /* Enhanced text shadows and typography */
+    .ai-status {
+      background: 
+        linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+      box-shadow: 
+        0 4px 15px rgba(0,0,0,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+
+    /* Smooth scroll behavior */
+    html {
+      scroll-behavior: smooth;
+    }
+
+    /* Focus indicators */
+    button:focus,
+    input:focus {
+      outline: 2px solid rgba(168, 85, 247, 0.5);
+      outline-offset: 2px;
+    }
+  
+    .blink .eye {
+      animation: enhancedBlink 0.4s ease-in-out;
+    }
+
+    @keyframes enhancedBlink {
+      0%, 100% { 
+        transform: scaleY(1); 
+        box-shadow: 
+          inset 0 3px 15px rgba(0,0,0,0.1),
+          0 2px 10px rgba(0,0,0,0.1);
+      }
+      50% { 
+        transform: scaleY(0.05); 
+        box-shadow: 
+          inset 0 1px 5px rgba(0,0,0,0.2),
+          0 1px 3px rgba(0,0,0,0.1);
+      }
+    }
+
+    /* Enhanced Speaking animation */
+    .speaking .ai-avatar {
+      animation: enhancedGlow 2s ease-in-out infinite;
+    }
+
+    .speaking .ai-mouth {
+      animation: enhancedTalk 0.6s ease-in-out infinite;
+    }
+
+    .speaking .pupil {
+      animation: enhancedEyeMove 3.5s ease-in-out infinite;
+    }
+
+    @keyframes enhancedGlow {
+      0%, 100% { 
+        box-shadow: 
+          0 0 60px rgba(99, 102, 241, 0.4),
+          inset 0 0 60px rgba(255,255,255,0.1),
+          0 0 0 3px rgba(255,255,255,0.1),
+          0 0 0 6px rgba(99, 102, 241, 0.2);
+        transform: scale(1);
+      }
+      50% { 
+        box-shadow: 
+          0 0 100px rgba(99, 102, 241, 0.6),
+          inset 0 0 80px rgba(255,255,255,0.15),
+          0 0 0 3px rgba(255,255,255,0.2),
+          0 0 0 6px rgba(99, 102, 241, 0.4);
+        transform: scale(1.02);
+      }
+    }
+
+    @keyframes enhancedTalk {
+      0%, 100% { 
+        width: 45px;
+        height: 25px;
+        border-color: #64748b;
+      }
+      25% { 
+        width: 55px;
+        height: 35px;
+        border-color: #4f46e5;
+      }
+      75% { 
+        width: 50px;
+        height: 30px;
+        border-color: #6366f1;
+      }
+    }
+
+    @keyframes enhancedEyeMove {
+      0%, 100% { transform: translate(-50%, -50%); }
+      20% { transform: translate(-45%, -45%); }
+      40% { transform: translate(-55%, -50%); }
+      60% { transform: translate(-50%, -55%); }
+      80% { transform: translate(-45%, -50%); }
+    }
+
+    .ai-status {
+      margin-top: 25px;
+      color: rgba(6, 54, 118, 0.9);
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      padding: 12px 24px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+
+    .chat-section {
+      grid-area: chat;
+      display: flex;
+      flex-direction: column;
+      background: 
+        linear-gradient(145deg, rgba(219, 219, 219, 0.46) 0%, rgba(247, 246, 248, 0.48) 100%);
+      backdrop-filter: blur(25px);
+      border-radius: 40px;
+      border: 1px solid rgba(255,255,255,0.15);
+      overflow: hidden;
+      box-shadow: 
+        0 25px 50px rgba(0,0,0,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      position: relative;
+    }
+
+    .chat-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    }
+
+    .log {
+      flex: 1;
+      padding: 40px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+      scroll-behavior: smooth;
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 20px 25px;
+      border-radius: 25px;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      animation: slideInMessage 0.4s ease-out;
+      position: relative;
+      word-wrap: break-word;
+    }
+
+    .user-message {
+      background: 
+        linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 8px;
+      box-shadow: 
+        0 8px 25px rgba(16, 185, 129, 0.3),
+        0 3px 10px rgba(0,0,0,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .user-message::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    }
+
+    .ai-message {
+      background: 
+        linear-gradient(145deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
+      color: #1e293b;
+      margin-right: auto;
+      border-bottom-left-radius: 8px;
+      box-shadow: 
+        0 8px 25px rgba(0,0,0,0.08),
+        0 3px 10px rgba(0,0,0,0.05),
+        inset 0 1px 0 rgba(255,255,255,0.8);
+      border: 1px solid rgba(226, 232, 240, 0.6);
+    }
+
+    .ai-message::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(5, 5, 5, 0.6), transparent);
+    }
+
+    @keyframes slideInMessage {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .typing-indicator {
+      padding: 25px 40px;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.4s ease;
+      pointer-events: none;
+    }
+
+    .typing-indicator.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .typing-dots {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      padding: 15px 25px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .typing-dots::before {
+      content: "SwasthaAI is thinking";
+      color: rgba(226, 232, 240, 0.9);
+      margin-right: 15px;
+      font-style: italic;
+      font-weight: 500;
+    }
+
+    .typing-dot {
+      width: 10px;
+      height: 10px;
+      background: 
+        linear-gradient(135deg, #a855f7, #ec4899);
+      border-radius: 50%;
+      animation: enhancedTypingDot 1.6s infinite ease-in-out;
+      box-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+    }
+
+    .typing-dot:nth-child(2) { 
+      animation-delay: 0.3s; 
+      background: linear-gradient(135deg, #ec4899, #06b6d4);
+      box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+    }
+    
+    .typing-dot:nth-child(3) { 
+      animation-delay: 0.6s;
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+    }
+
+    @keyframes enhancedTypingDot {
+      0%, 80%, 100% { 
+        opacity: 0.3; 
+        transform: scale(0.8) translateY(0); 
+      }
+      40% { 
+        opacity: 1; 
+        transform: scale(1.3) translateY(-5px); 
+      }
+    }
+
+    .controls {
+      padding: 40px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      background: 
+        linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      position: relative;
+    }
+
+    .controls::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    }
+
+    #textInput {
+      flex: 1;
+      padding: 20px 25px;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-radius: 30px;
+      font-size: 1.1rem;
+      background: 
+        linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+      color: #e2e8f0;
+      backdrop-filter: blur(15px);
+      outline: none;
+      transition: all 0.4s ease;
+      box-shadow: 
+        0 4px 15px rgba(0,0,0,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+
+    #textInput::placeholder {
+      color: rgba(226, 232, 240, 0.6);
+      font-weight: 400;
+    }
+
+    #textInput:focus {
+      border-color: #10b981;
+      box-shadow: 
+        0 0 30px rgba(16, 185, 129, 0.4),
+        0 4px 15px rgba(0,0,0,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      transform: translateY(-2px);
+    }
+
+    button {
+      padding: 20px 30px;
+      border: none;
+      border-radius: 30px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.4s ease;
+      backdrop-filter: blur(15px);
+      position: relative;
+      overflow: hidden;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    #sendBtn {
+      background: 
+        linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
+      color: white;
+      box-shadow: 
+        0 6px 20px rgba(16, 185, 129, 0.4),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    #sendBtn:hover {
+      transform: translateY(-3px);
+      box-shadow: 
+        0 10px 30px rgba(16, 185, 129, 0.5),
+        inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    #micBtn {
+      background: 
+        linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #ea580c 100%);
+      color: white;
+      box-shadow: 
+        0 6px 20px rgba(245, 158, 11, 0.4),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.1);
+      min-width: 140px;
+    }
+
+    #micBtn:hover {
+      transform: translateY(-3px);
+      box-shadow: 
+        0 10px 30px rgba(245, 158, 11, 0.5),
+        inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    #micBtn.recording {
+      background: 
+        linear-gradient(135deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%);
+      animation: enhancedPulse 1.2s infinite;
+      box-shadow: 
+        0 0 40px rgba(239, 68, 68, 0.6),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+
+    @keyframes enhancedPulse {
+      0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 
+          0 0 40px rgba(239, 68, 68, 0.6),
+          inset 0 1px 0 rgba(255,255,255,0.2);
+      }
+      50% { 
+        transform: scale(1.08); 
+        box-shadow: 
+          0 0 60px rgba(239, 68, 68, 0.8),
+          inset 0 1px 0 rgba(255,255,255,0.3);
+      }
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgba(226, 232, 240, 0.9);
+      font-size: 1rem;
+      cursor: pointer;
+      user-select: none;
+      padding: 10px 15px;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: all 0.3s ease;
+    }
+
+    .toggle:hover {
+      background: rgba(255,255,255,0.1);
+      transform: translateY(-1px);
+    }
+
+    .toggle input[type="checkbox"] {
+      width: 22px;
+      height: 22px;
+      accent-color: #10b981;
+      cursor: pointer;
+    }
+
+    footer {
+      grid-area: footer;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: 
+        linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+      backdrop-filter: blur(25px);
+      border-radius: 25px;
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 
+        0 10px 30px rgba(0,0,0,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      position: relative;
+    }
+
+    footer::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    }
+
+    footer a {
+      color: rgba(168, 85, 247, 0.9);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.4s ease;
+      padding: 15px 30px;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(168, 85, 247, 0.2);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    footer a:hover {
+      color: #a855f7;
+      text-shadow: 0 0 20px rgba(168, 85, 247, 0.8);
+      background: rgba(168, 85, 247, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(168, 85, 247, 0.3);
+    }
+
+    .followup-options {
+      margin-top: 15px;
+      display: flex;
+      gap: 15px;
+      animation: slideInMessage 0.4s ease-out;
+    }
+
+    .followup-options button {
+      flex: 1;
+      padding: 15px 25px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: 700;
+      border: none;
+      transition: all 0.4s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .followup-yes {
+      background: 
+        linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #3b82f6 100%);
+      color: white;
+      box-shadow: 
+        0 6px 20px rgba(16, 185, 129, 0.3),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .followup-yes:hover {
+      transform: translateY(-3px);
+      box-shadow: 
+        0 10px 35px rgba(16, 185, 129, 0.5),
+        inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    .followup-no {
+      background: 
+        linear-gradient(135deg, #ef4444 0%, #f97316 50%, #dc2626 100%);
+      color: white;
+      box-shadow: 
+        0 6px 20px rgba(239, 68, 68, 0.3),
+        inset 0 1px 0 rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .followup-no:hover {
+      transform: translateY(-3px);
+      box-shadow: 
+        0 10px 35px rgba(239, 68, 68, 0.5),
+        inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    /* Enhanced Custom scrollbar */
+    .log::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    .log::-webkit-scrollbar-track {
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+      margin: 10px;
+    }
+
+    .log::-webkit-scrollbar-thumb {
+      background: 
+        linear-gradient(135deg, rgba(168, 85, 247, 0.6), rgba(59, 130, 246, 0.6));
+      border-radius: 6px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    .log::-webkit-scrollbar-thumb:hover {
+      background: 
+        linear-gradient(135deg, rgba(168, 85, 247, 0.8), rgba(59, 130, 246, 0.8));
+    }
+
+    /* Additional hover effects */
+    .message:hover {
+      transform: translateY(-1px);
+    }
+
+    .user-message:hover {
+      box-shadow: 
+        0 10px 30px rgba(16, 185, 129, 0.4),
+        0 3px 10px rgba(0,0,0,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    .ai-message:hover {
+      box-shadow: 
+        0 10px 30px rgba(0,0,0,0.12),
+        0 3px 10px rgba(0,0,0,0.08),
+        inset 0 1px 0 rgba(255,255,255,1);
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SwasthaAI Agent</h1>
+    
+    <div class="ai-section">
+      <div class="ai-avatar" id="aiAvatar">
+        <div class="ai-face">
+          <div class="ai-eyes">
+            <div class="eye" id="leftEye">
+              <div class="pupil">
+                <div class="iris">
+                  <div class="highlight"></div>
+                </div>
+              </div>
+            </div>
+            <div class="eye" id="rightEye">
+              <div class="pupil">
+                <div class="iris">
+                  <div class="highlight"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="ai-mouth" id="aiMouth"></div>
+        </div>
+      </div>
+      <div class="ai-status" id="aiStatus">Ready to help you</div>
+    </div>
+    
+    <div class="chat-section">
+      <div id="log" class="log"></div>
+      
+      <div class="typing-indicator" id="typingIndicator">
+        <div class="typing-dots">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      </div>
+      
+      <div class="controls">
+        <input id="textInput" type="text" placeholder="Ask me anything about your health..." />
+        <button id="sendBtn">Send</button>
+        <button id="micBtn" title="Hold to speak (or click)">
+          <span id="micLabel">🎤 Speak</span>
+        </button>
+        <label class="toggle">
+          <input id="ttsToggle" type="checkbox" checked />
+          <span>Speak answers</span>
+        </label>
+      </div>
+    </div>
+    
+    <footer>
+      <a href="/health" target="_blank">Health Dashboard</a>
+    </footer>
+  </div>
+
+  <script>
+    const logEl = document.getElementById("log");
+    const textInput = document.getElementById("textInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const micBtn = document.getElementById("micBtn");
+    const ttsToggle = document.getElementById("ttsToggle");
+    const typingIndicator = document.getElementById("typingIndicator");
+    const aiAvatar = document.getElementById("aiAvatar");
+    const aiStatus = document.getElementById("aiStatus");
+    const leftEye = document.getElementById("leftEye");
+    const rightEye = document.getElementById("rightEye");
+
+    // AI Animation Functions
+    function blinkEyes() {
+      leftEye.classList.add("blink");
+      rightEye.classList.add("blink");
+      setTimeout(() => {
+        leftEye.classList.remove("blink");
+        rightEye.classList.remove("blink");
+      }, 300);
+    }
+
+    function startSpeaking() {
+      aiAvatar.classList.add("speaking");
+      aiStatus.textContent = "Speaking...";
+    }
+
+    function stopSpeaking() {
+      aiAvatar.classList.remove("speaking");
+      aiStatus.textContent = "Ready to help you";
+    }
+
+    function startThinking() {
+      aiStatus.textContent = "Thinking...";
+    }
+
+    // Random blinking
+    function scheduleNextBlink() {
+      const delay = Math.random() * 3000 + 2000; // 2-5 seconds
+      setTimeout(() => {
+        blinkEyes();
+        scheduleNextBlink();
+      }, delay);
+    }
+
+    // Start blinking cycle
+    scheduleNextBlink();
+
+    // Utility: add messages
+    function addMessage(text, sender = "ai") {
+      const msg = document.createElement("div");
+      msg.className = "message " + (sender === "user" ? "user-message" : "ai-message");
+      msg.innerHTML = text;
+      logEl.appendChild(msg);
+      logEl.scrollTop = logEl.scrollHeight;
+
+      // Blink when AI responds
+      if (sender === "ai") {
+        setTimeout(() => blinkEyes(), 500);
+      }
+    }
+
+    // Handle send
+    function sendMessage(query) {
+      if (!query) return;
+      addMessage(query, "user");
+      textInput.value = "";
+
+      startThinking();
+      typingIndicator.classList.add("show");
+
+      fetch("/ask", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ query })
+      })
+      .then(res => res.json())
+      .then(data => {
+        typingIndicator.classList.remove("show");
+
+        let answer = data.answer || "Sorry, I didn't get that.";
+        addMessage(answer, "ai");
+
+        // If follow-up is suggested, show Yes/No buttons
+        if (answer.includes("Would you like me to help with this?")) {
+          showFollowUpOptions();
+        }
+
+        if (ttsToggle.checked && window.speechSynthesis) {
+          startSpeaking();
+          const utterance = new SpeechSynthesisUtterance(answer);
+          
+          utterance.onend = () => {
+            stopSpeaking();
+          };
+          
+          utterance.onerror = () => {
+            stopSpeaking();
+          };
+          
+          speechSynthesis.speak(utterance);
+        } else {
+          stopSpeaking();
+        }
+      })
+      .catch(() => {
+        typingIndicator.classList.remove("show");
+        addMessage("Error connecting to server.", "ai");
+        stopSpeaking();
+      });
+    }
+
+    // Show Yes/No follow-up buttons
+    function showFollowUpOptions() {
+      const container = document.createElement("div");
+      container.className = "followup-options";
+
+      const yesBtn = document.createElement("button");
+      yesBtn.textContent = "Yes 👍";
+      yesBtn.className = "followup-yes";
+      yesBtn.onclick = () => handleFollowUp("yes");
+
+      const noBtn = document.createElement("button");
+      noBtn.textContent = "No 👎";
+      noBtn.className = "followup-no";
+      noBtn.onclick = () => handleFollowUp("no");
+
+      container.appendChild(yesBtn);
+      container.appendChild(noBtn);
+      logEl.appendChild(container);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // Send follow-up choice
+    function handleFollowUp(choice) {
+      // Remove the follow-up buttons
+      const followupContainer = document.querySelector('.followup-options');
+      if (followupContainer) {
+        followupContainer.remove();
+      }
+
+      startThinking();
+
+      fetch("/ask", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ query: choice })
+      })
+      .then(res => res.json())
+      .then(data => {
+        addMessage(data.answer, "ai");
+        
+        if (ttsToggle.checked && window.speechSynthesis) {
+          startSpeaking();
+          const utterance = new SpeechSynthesisUtterance(data.answer);
+          
+          utterance.onend = () => {
+            stopSpeaking();
+          };
+          
+          utterance.onerror = () => {
+            stopSpeaking();
+          };
+          
+          speechSynthesis.speak(utterance);
+        } else {
+          stopSpeaking();
+        }
+      })
+      .catch(() => {
+        addMessage("Error connecting to server.", "ai");
+        stopSpeaking();
+      });
+    }
+
+    // Bind events
+    sendBtn.onclick = () => sendMessage(textInput.value.trim());
+    textInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage(textInput.value.trim());
+    });
+
+    // Speech recognition
+    let recognition;
+    if ("webkitSpeechRecognition" in window) {
+      recognition = new webkitSpeechRecognition();
+      recognition.continuous = false;
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+
+      recognition.onstart = function() {
+        aiStatus.textContent = "Listening...";
+      };
+
+      recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        sendMessage(transcript);
+      };
+
+      recognition.onerror = function() {
+        micBtn.classList.remove("recording");
+        aiStatus.textContent = "Ready to help you";
+      };
+
+      recognition.onend = function() {
+        micBtn.classList.remove("recording");
+        aiStatus.textContent = "Ready to help you";
+      };
+    }
+
+    micBtn.onclick = () => {
+      if (!recognition) {
+        alert("Speech recognition not supported in this browser.");
+        return;
+      }
+      recognition.start();
+      micBtn.classList.add("recording");
+    };
+
+    // Welcome message
+    setTimeout(() => {
+      addMessage("Hello! I'm SwasthaAI, your personal health assistant. How can I help you today?", "ai");
+      blinkEyes();
+    }, 1000);
+  </script>
+</body>
+</html>

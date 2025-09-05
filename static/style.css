@@ -1,0 +1,17 @@
+* { box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background: #0b1020; color: #e7ecff; }
+.container { max-width: 900px; margin: 40px auto; padding: 20px; }
+h1 { font-weight: 800; letter-spacing: 0.3px; }
+.pill { font-size: 0.7em; padding: 4px 10px; border-radius: 999px; background: #1e2b5a; border: 1px solid #2b3a77; }
+.chat { background: #0f1630; border: 1px solid #1e2b5a; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.25); }
+.log { height: 60vh; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.msg { padding: 10px 14px; border-radius: 12px; max-width: 80%; line-height: 1.4; }
+.msg.user { align-self: flex-end; background: #21408a; }
+.msg.bot { align-self: flex-start; background: #16224a; border: 1px solid #233063; }
+.meta { font-size: 12px; opacity: 0.75; margin-top: 4px; }
+.controls { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #1e2b5a; background: #0b1020; }
+.controls input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #2b3a77; background: #0f1630; color: #e7ecff; }
+.controls button { padding: 10px 14px; border-radius: 10px; border: 1px solid #2b3a77; background: #1b2858; color: #e7ecff; cursor: pointer;}
+.controls button:hover { filter: brightness(1.1); }
+.toggle { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; }
+footer { margin-top: 12px; opacity: 0.6; font-size: 12px; }
